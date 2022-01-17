@@ -31,9 +31,8 @@ console.log(MY_FAVORITE_BRANDS[0]);
 // 1. Create a new variable and assign it the link of the cheapest t-shirt
 // I can find on these e-shops
 // 2. Log the variable
-
-
-
+const cheapestTshirt='https://www.loom.fr/collections/tous-les-vetements/products/le-t-shirt';
+console.log(cheapestTshirt)
 
 
 /**
@@ -48,35 +47,118 @@ console.log(MY_FAVORITE_BRANDS[0]);
 // 🎯 TODO: Number of products
 // 1. Create a variable and assign it the number of products
 // 2. Log the variable
+const lengthMarketPlace=marketplace.length;
+console.log(lengthMarketPlace)
 
 
 // 🎯 TODO: Brands name
 // 1. Create a variable and assign it the list of brands name only
 // 2. Log the variable
 // 3. Log how many brands we have
+const brandsName=[]
+for(let i=0;i<lengthMarketPlace;i++)
+{
+  brandsName.push(marketplace[i].brand);
+}
+console.log(brandsName.length)
+
+var brandsNameUnique=new Set(brandsName)
+console.log(brandsNameUnique.size)
+
+//MY_FAVORITE_BRANDS.forEach(brand => brandsName.push(brand.name));
 
 
 // 🎯 TODO: Sort by price
 // 1. Create a function to sort the marketplace products by price
 // 2. Create a variable and assign it the list of products by price from lowest to highest
 // 3. Log the variable
+function SortPrices(marketplace)
+{
+  var market= marketplace.slice();
+  for(let i=0;i<market.length;i++)
+  {
+    for(let j=0;j<market.length-1;j++)
+    {
+      if(market[j].price>market[j+1].price)
+      {
+         var temp=market[j];
+         market[j]=market[j+1];
+         market[i]=temp;
+      }
+    }
+  }
+  return market
+}
+
+var NewMarketplace=SortPrices(marketplace)
+console.log(NewMarketplace)
+
+// other possibility
+function comparePrice(a,b)
+{
+  return a.price-b.price;
+}
+
+let sortByPrice=marketplace.slice();
+sortByPrice.sort(comparePrice)
+console.log(sortByPrice)
+
+
 
 
 // 🎯 TODO: Sort by date
 // 1. Create a function to sort the marketplace objects by products date
 // 2. Create a variable and assign it the list of products by date from recent to old
 // 3. Log the variable
+function sortDate(marketplace)
+{
+  var market= marketplace.slice();
+  for(let i=0;i<market.length;i++)
+  {
+    for(let j=0;j<market.length-1;j++)
+    {
+      date1 = new Date(market[j].date);
+      date2 = new Date(market[j+1].date);
+      if(date1>date2)
+      {
+         var temp=market[j];
+         market[j]=market[j+1];
+         market[i]=temp;
+      }
+    }
+  }
+  return market
+}
 
+// other possibility
+function compareDate(a,b)
+{
+  return new Date(a.date)-new Date(b.date);
+}
+
+let sortByPrice=marketplace.slice();
+sortByPrice.sort(comparePrice)
+console.log(sortByPrice)
 
 // 🎯 TODO: Filter a specific price range
 // 1. Filter the list of products between 50€ and 100€
 // 2. Log the list
+productBetween50and100=[]
+for(let i=0;i<marketPlace.lenght;i++)
+{
+  if(marketPlace[i].price>50 & marketPlace[i].price<100) productBetween50and100.push(marketplace[i])
+}
+console.log(productBetween50and100)
 
 
 // 🎯 TODO: Average Basket
 // 1. Determine the average basket of the marketplace
 // 2. Log the average
-
+const reducer = function(previousPrice,current)
+{
+  return previousPrice+current.price;
+}
+console.log(marketplace.reduce(reducer,0)/marketplace.length)
 
 
 

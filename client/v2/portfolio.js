@@ -1,3 +1,10 @@
+//Features:
+//done: 0, 1, 2, 8, 12
+//on going:
+//not done:
+
+
+
 // Invoking strict mode https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode#invoking_strict_mode
 'use strict';
 
@@ -5,6 +12,9 @@
 let currentProducts = [];
 let currentPagination = {};
 let currentBrand="";
+var lastReleasedDateVar=new Date("1901-10-01");
+var meanProduct=0;
+var sdProduct=0;
 
 // inititiate selectors
 const selectShow = document.querySelector('#show-select');
@@ -12,6 +22,11 @@ const selectPage = document.querySelector('#page-select');
 const sectionProducts = document.querySelector('#products');
 const selectBrands = document.querySelector('#brand-select');
 const spanNbProducts = document.querySelector('#nbProducts');
+const spanP50 = document.querySelector('#p50');
+const spanP90 = document.querySelector('#p90');
+const spanP95 = document.querySelector('#p95');
+const spanLastReleaseDate = document.querySelector('#lastReleasedDate');
+
 
 /**
  * Set global value
@@ -29,7 +44,67 @@ const setCurrentProducts = ({result, meta}) => {
  * @param  {Number}  [size=12] - size of the page
  * @return {Object}
  */
-const fetchProducts = async (page = 1, size = 12,brands="") => {
+
+const lastReleasedDate = async (page = 1, size = 48,brands="")=>
+{
+  try {
+    lastReleasedDateVar=new Date("1901-10-01");
+    const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
+    const body = await response.json();
+    currentBrand=brands;
+    if (body.success !== true) {
+      console.error(body);
+      return {currentProducts, currentPagination};
+    }
+    if(brands=="") // when no brands are selected
+    {
+      for(let i=1;i<=body.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        body.data.result.forEach(x => {
+          if(new Date(x.released)>lastReleasedDateVar)
+          {
+            lastReleasedDateVar=new Date(x.released)
+          }
+        });
+      }
+      return {lastReleasedDateVar}
+    }
+    else{ 
+      
+      const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
+      const body = await response.json();
+      if (body.success !== true) {
+        console.error(body);
+        return {currentProducts, currentPagination};
+      }
+      for(let i=1;i<=body.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        body.data.result.forEach(x => {
+          if(x.brand==brands)
+          {
+            if(new Date(x.released)>lastReleasedDateVar)
+            {
+            lastReleasedDateVar=new Date(x.released)
+            }
+          }
+        });
+      }
+      return {lastReleasedDateVar}
+      
+    }
+    
+  } catch (error) {
+    console.error(error);
+    return {lastReleasedDateVar};
+  }
+}
+
+const percentile = async (page = 1, size = 12,brands="") => // get mean and standard deviation WORK ONLY WHEN NO BRANDS ARE SELECTED
+{
   try {
     const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
     const body = await response.json();
@@ -40,20 +115,38 @@ const fetchProducts = async (page = 1, size = 12,brands="") => {
     }
     if(brands=="")
     {
-      console.log(body.data);
-      return body.data;
+      var dataTemp=[] //to stock all the prices
+      var nbPage=0;
+      var bodyMark={"data":{"result":[],"meta":{"count":139,"currentPage":page,"pageSize":size,"pageCount":0}}}
+      bodyMark.data.meta.pageCount=Math.ceil(bodyMark.data.meta.count/bodyMark.data.meta.pageSize);
+      let countData=0;
+      // determinate the mean
+      for(let i=1;i<=bodyMark.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        nbPage=body.data.meta.pageCount;  
+        body.data.result.forEach(x => {
+          dataTemp.push(x.price)
+        });
+      }
+      dataTemp.forEach(x => {meanProduct = meanProduct+x;})
+      meanProduct=meanProduct/dataTemp.length;
+      // determinate the sd
+      for(let i=1;i<=bodyMark.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        nbPage=body.data.meta.pageCount;  
+        body.data.result.forEach(x => {
+          sdProduct=sdProduct+(x.price+meanProduct,2)
+        });
+        sdProduct=Math.sqrt(sdProduct);
+      }
+      return {meanProduct,sdProduct}
     }
     else{
       
-      console.log("passe")
-      var bodyMark={"data":{"result":[],"meta":{"count":139,"currentPage":page,"pageSize":size,"pageCount":0}}}
-      body.data.result.forEach(x => {
-        if(x.brand==brands) 
-        {
-          bodyMark.data.result.push(x);
-        };
-      });
-      bodyMark.data.meta.pageCount=Math.ceil(bodyMark.data.meta.count/bodyMark.data.meta.pageSize);
       
       console.log(bodyMark)
       return bodyMark.data;
@@ -63,7 +156,7 @@ const fetchProducts = async (page = 1, size = 12,brands="") => {
     console.error(error);
     return {currentProducts, currentPagination};
   }
-};
+}
 
 
 const fetchProducts2 = async (page = 1, size = 12,brands="") => {
@@ -77,7 +170,6 @@ const fetchProducts2 = async (page = 1, size = 12,brands="") => {
     }
     if(brands=="")
     {
-      console.log(body.data);
       return body.data;
     }
     else{
@@ -155,7 +247,7 @@ const renderProducts = products => {
       return `
       <div class="product" id=${product.uuid}>
         <span>${product.brand}</span>
-        <a href="${product.link}">${product.name}</a>
+        <a href="${product.link}" target="_blank">${product.name}</a>
         <span>${product.price}</span>
       </div>
     `;
@@ -193,7 +285,13 @@ const renderPagination = pagination => {
 const renderIndicators = pagination => {
   const {count} = pagination;
 
-  spanNbProducts.innerHTML = count;
+  spanNbProducts.innerHTML = currentPagination.count;//update nb products even when selecting a brand
+  spanLastReleaseDate.innerHTML=lastReleasedDateVar.toDateString();
+
+  spanP50.innerHTML=meanProduct;
+  spanP90.innerHTML=meanProduct-1.29*sdProduct;
+  spanP95.innerHTML=meanProduct-1.69*sdProduct;
+
 };
 
 const render = (products, pagination) => {
@@ -225,11 +323,21 @@ selectPage.addEventListener('change', event => {
 selectBrands.addEventListener('change', event => {
   fetchProducts2(currentPagination.currentPage,selectShow.value,event.target.value)
     .then(setCurrentProducts)
+    //.then(percentile(page=1,size=48,brands=event.target.value))
+    .then(lastReleasedDate(1,48,event.target.value))
     .then(() => render(currentProducts, currentPagination));
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const products = await fetchProducts2();
+  /*
+  const products = await fetchProducts2(); 
   setCurrentProducts(products);
+  percentile()
   render(currentProducts, currentPagination);
+  */
+  fetchProducts2()
+    .then(setCurrentProducts)
+    .then(percentile)
+    .then(lastReleasedDate())
+    .then(() => render(currentProducts, currentPagination));
 });

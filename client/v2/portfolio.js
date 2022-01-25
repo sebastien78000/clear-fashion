@@ -1,5 +1,5 @@
 //Features:
-//done: 0, 1, 2, 8, 12
+//done: 0, 1, 2, 8, 12, 11, 10
 //on going:
 //not done:
 
@@ -54,7 +54,7 @@ const lastReleasedDate = async (page = 1, size = 48,brands="")=>
     currentBrand=brands;
     if (body.success !== true) {
       console.error(body);
-      return {currentProducts, currentPagination};
+      return {lastReleasedDateVar};
     }
     if(brands=="") // when no brands are selected
     {
@@ -111,7 +111,7 @@ const percentile = async (page = 1, size = 12,brands="") => // get mean and stan
     currentBrand=brands;
     if (body.success !== true) {
       console.error(body);
-      return {currentProducts, currentPagination};
+      return {meanProduct,sdProduct};
     }
     if(brands=="")
     {
@@ -147,14 +147,46 @@ const percentile = async (page = 1, size = 12,brands="") => // get mean and stan
     }
     else{
       
+      var dataTemp=[] //to stock all the prices
+      var nbPage=0;
+      var bodyMark={"data":{"result":[],"meta":{"count":139,"currentPage":page,"pageSize":size,"pageCount":0}}}
+      bodyMark.data.meta.pageCount=Math.ceil(bodyMark.data.meta.count/bodyMark.data.meta.pageSize);
+      let countData=0;
+      // determinate the mean
+      for(let i=1;i<=bodyMark.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        nbPage=body.data.meta.pageCount;  
+        body.data.result.forEach(x => {
+          if(x.brand==brands){
+            dataTemp.push(x.price)
+          }
+        });
+      }
+      dataTemp.forEach(x => {meanProduct = meanProduct+x;})
+      meanProduct=meanProduct/dataTemp.length;
+      // determinate the sd
+      for(let i=1;i<=bodyMark.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        nbPage=body.data.meta.pageCount;  
+        body.data.result.forEach(x => {
+          if(x.brand==brands){
+            sdProduct=sdProduct+(x.price+meanProduct,2)
+          }
+          
+        });
+        sdProduct=Math.sqrt(sdProduct);
+      }
+      return {meanProduct,sdProduct}
       
-      console.log(bodyMark)
-      return bodyMark.data;
     }
     
   } catch (error) {
     console.error(error);
-    return {currentProducts, currentPagination};
+    return {meanProduct,sdProduct};
   }
 }
 
@@ -323,7 +355,7 @@ selectPage.addEventListener('change', event => {
 selectBrands.addEventListener('change', event => {
   fetchProducts2(currentPagination.currentPage,selectShow.value,event.target.value)
     .then(setCurrentProducts)
-    //.then(percentile(page=1,size=48,brands=event.target.value))
+    .then(percentile(1,48,event.target.value))
     .then(lastReleasedDate(1,48,event.target.value))
     .then(() => render(currentProducts, currentPagination));
 });

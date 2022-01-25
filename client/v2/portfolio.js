@@ -4,6 +4,7 @@
 // current products on the page
 let currentProducts = [];
 let currentPagination = {};
+let currentBrand="";
 
 // inititiate selectors
 const selectShow = document.querySelector('#show-select');
@@ -28,17 +29,36 @@ const setCurrentProducts = ({result, meta}) => {
  * @param  {Number}  [size=12] - size of the page
  * @return {Object}
  */
-const fetchProducts = async (page = 1, size = 12) => {
+const fetchProducts = async (page = 1, size = 12,brands="") => {
   try {
     const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
     const body = await response.json();
-
+    currentBrand=brands;
     if (body.success !== true) {
       console.error(body);
       return {currentProducts, currentPagination};
+    }
+    if(brands=="")
+    {
+      console.log(body.data);
+      return body.data;
+    }
+    else{
+      
+      console.log("passe")
+      var bodyMark={"data":{"result":[],"meta":{"count":139,"currentPage":page,"pageSize":size,"pageCount":0}}}
+      body.data.result.forEach(x => {
+        if(x.brand==brands) 
+        {
+          bodyMark.data.result.push(x);
+        };
+      });
+      bodyMark.data.meta.pageCount=Math.ceil(bodyMark.data.meta.count/bodyMark.data.meta.pageSize);
+      
+      console.log(bodyMark)
+      return bodyMark.data;
     }
     
-    return body.data;
   } catch (error) {
     console.error(error);
     return {currentProducts, currentPagination};
@@ -46,30 +66,79 @@ const fetchProducts = async (page = 1, size = 12) => {
 };
 
 
-const fetchProductsByMark = async (page = 1, size = 12, brands) => {
+const fetchProducts2 = async (page = 1, size = 12,brands="") => {
   try {
     const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
     const body = await response.json();
-
+    currentBrand=brands;
     if (body.success !== true) {
       console.error(body);
       return {currentProducts, currentPagination};
     }
-    var bodyMark={"data":{"result":[]}}
-    body.data.result.forEach(x => {
-      if(x.brand==brands) 
+    if(brands=="")
+    {
+      console.log(body.data);
+      return body.data;
+    }
+    else{
+      var nbPage=0;
+      var bodyMark={"data":{"result":[],"meta":{"count":139,"currentPage":page,"pageSize":size,"pageCount":0}}}
+      bodyMark.data.meta.pageCount=Math.ceil(bodyMark.data.meta.count/bodyMark.data.meta.pageSize);
+      let countData=0;
+      for(let i=1;i<=bodyMark.data.meta.pageCount;i++) //number of existing data
       {
-        bodyMark.data.result.push(x);
-      };
-      
-    });
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        nbPage=body.data.meta.pageCount;  
+        body.data.result.forEach(x => {
+          if(x.brand==brands) 
+          {
+            countData+=1;
+          };
+        });
+        
 
-    return bodyMark.data;
+      }
+      // get data per page
+      bodyMark={"data":{"result":[],"meta":{"count":0,"currentPage":page,"pageSize":size,"pageCount":0}}}
+      bodyMark.data.meta.count=countData;
+      bodyMark.data.meta.pageCount=Math.ceil(bodyMark.data.meta.count/bodyMark.data.meta.pageSize);
+      let i=1;
+      let nb=0;
+      let index=0;// cut value
+      while(bodyMark.data.result.length<size+1)
+      {
+        if(i==nbPage) break;
+        
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();
+        body.data.result.forEach(x => {
+          if(x.brand==brands) 
+          {
+            if(nb>=size*page-size && index<size) //because we don't want to have the value before the actual page
+            {
+              bodyMark.data.result.push(x);
+              index++;
+            }
+            nb++;
+          };
+        });
+        i++;
+        
+      }
+      console.log(bodyMark)
+      return bodyMark.data;
+    }
+    
   } catch (error) {
     console.error(error);
     return {currentProducts, currentPagination};
   }
 };
+
+
+
+
 
 
 
@@ -142,23 +211,25 @@ const render = (products, pagination) => {
  * @type {[type]}
  */
 selectShow.addEventListener('change', event => {
-  fetchProducts(currentPagination.currentPage, parseInt(event.target.value))
+  fetchProducts2(1, parseInt(event.target.value),currentBrand)
     .then(setCurrentProducts)
     .then(() => render(currentProducts, currentPagination));
 });
 
 selectPage.addEventListener('change', event => {
-  fetchProducts(parseInt(event.target.value), selectShow.value)
+  fetchProducts2(parseInt(event.target.value), selectShow.value,currentBrand)
     .then(setCurrentProducts)
     .then(() => render(currentProducts, currentPagination));
 });
 
 selectBrands.addEventListener('change', event => {
-  fetchProductsByMark(currentPagination.currentPage,selectShow.Value,event.target.value);
+  fetchProducts2(currentPagination.currentPage,selectShow.value,event.target.value)
+    .then(setCurrentProducts)
+    .then(() => render(currentProducts, currentPagination));
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const products = await fetchProducts();
+  const products = await fetchProducts2();
   setCurrentProducts(products);
   render(currentProducts, currentPagination);
 });

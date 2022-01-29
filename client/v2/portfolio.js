@@ -1,5 +1,5 @@
 //Features:
-//done: 0, 1, 2, 8, 12, 11, 10
+//done: 0, 1, 2, 8,9, 12, 11, 10
 //on going:
 //not done:
 
@@ -20,6 +20,7 @@ var currentNbNewProducts=0;
 
 // inititiate selectors
 const selectShow = document.querySelector('#show-select');
+const selectSort = document.querySelector('#sort-select');
 const selectPage = document.querySelector('#page-select');
 const sectionProducts = document.querySelector('#products');
 const selectFavoritesR = document.querySelector('#favorite-choice');
@@ -49,6 +50,51 @@ const setCurrentProducts = ({result, meta}) => {
  * @param  {Number}  [size=12] - size of the page
  * @return {Object}
  */
+
+const FilterByDateByPrice=(filter)=>
+{
+  //var newCurrentProducts=[]
+
+  if(filter=="price-asc")
+  {
+    currentProducts=currentProducts.sort(function(a,b)
+    {
+      return parseFloat(a.price)-parseFloat(b.price);
+    })
+    return currentProducts;
+  }
+  else if(filter=="price-desc")
+  {
+    currentProducts=currentProducts.sort(function(a,b)
+    {
+      return parseFloat(b.price)-parseFloat(a.price);
+    })
+
+    return currentProducts;
+  }
+  else if(filter=="date-asc")
+  {
+    currentProducts=currentProducts.sort(function(a,b)
+    {
+      return new Date(b.released)-new Date(a.released) ;
+    })
+    return currentProducts;
+  }
+  else if(filter=="date-desc")
+  {
+    currentProducts=currentProducts.sort(function(a,b)
+    {
+      return new Date(a.released)-new Date(b.released);
+    })
+
+    return currentProducts;
+  }
+  else {
+    return currentProducts;
+  }
+}
+
+
 
 const lastReleasedDate = async (page = 1, size = 48,brands="")=>
 {
@@ -446,6 +492,7 @@ selectShow.addEventListener('change', event => {
     .then(() => render(currentProducts, currentPagination));
 });
 
+
 selectPage.addEventListener('change', event => {
   fetchProducts2(parseInt(event.target.value), selectShow.value,currentBrand)
     .then(setCurrentProducts)
@@ -466,9 +513,16 @@ selectFavoritesR.addEventListener('change', event => {
   .then(() => render(currentProducts, currentPagination));
 });
 */
+
+selectSort.addEventListener('change', event => {
+  fetchProducts2()
+    .then(setCurrentProducts)
+    .then(() => render(FilterByDateByPrice(event.target.value), currentPagination));
+  });
+
 document.addEventListener('DOMContentLoaded', async () => {
   fetchProducts2()
-    .then(instantiateFavorite(currentFavorites))// ?
+    //.then(instantiateFavorite(currentFavorites))// ?
     .then(setCurrentProducts)
     .then(percentile)
     .then(lastReleasedDate())

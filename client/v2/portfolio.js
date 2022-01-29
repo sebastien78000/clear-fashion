@@ -1,5 +1,5 @@
 //Features:
-//done: 0, 1, 2, 8,9, 12, 11, 10
+//done: 0, 1, 2,5,6 8,9, 10,11,12
 //on going:
 //not done:
 
@@ -25,6 +25,7 @@ const selectPage = document.querySelector('#page-select');
 const sectionProducts = document.querySelector('#products');
 const selectFavoritesR = document.querySelector('#favorite-choice');
 const selectBrands = document.querySelector('#brand-select');
+const selectFilter = document.querySelector('#filter-select');
 const spanNbProducts = document.querySelector('#nbProducts');
 const spanP50 = document.querySelector('#p50');
 const spanP90 = document.querySelector('#p90');
@@ -51,7 +52,7 @@ const setCurrentProducts = ({result, meta}) => {
  * @return {Object}
  */
 
-const FilterByDateByPrice=(filter)=>
+const SortByDateByPrice=(filter)=>
 {
   //var newCurrentProducts=[]
 
@@ -87,6 +88,42 @@ const FilterByDateByPrice=(filter)=>
       return new Date(a.released)-new Date(b.released);
     })
 
+    return currentProducts;
+  }
+  else {
+    return currentProducts;
+  }
+}
+
+const FilterByRecentProductByReasonnablePrice=(filter)=>
+{
+  //var newCurrentProducts=[]
+  var newCurrentProducts =[];
+  if(filter=="price")
+  {
+    currentProducts.forEach(x =>
+      {
+        if(x.price<50)
+        {
+          newCurrentProducts.push(x);
+        }
+      })
+    currentProducts=newCurrentProducts;
+    console.log(currentProducts);
+    return currentProducts;
+  }
+  else if(filter=="recent")
+  {
+    currentProducts.forEach(x =>
+      {
+        var actualDate = new Date(Date.now());
+        actualDate.setDate(actualDate.getDate()-15);
+        if(actualDate<new Date(x.released))
+        {
+          newCurrentProducts.push(x);
+        }
+      })
+    currentProducts=newCurrentProducts;
     return currentProducts;
   }
   else {
@@ -517,8 +554,16 @@ selectFavoritesR.addEventListener('change', event => {
 selectSort.addEventListener('change', event => {
   fetchProducts2()
     .then(setCurrentProducts)
-    .then(() => render(FilterByDateByPrice(event.target.value), currentPagination));
+    .then(() => render(SortByDateByPrice(event.target.value), currentPagination));
   });
+
+
+selectFilter.addEventListener('change', event => {
+  fetchProducts2()
+    .then(setCurrentProducts)
+    .then(()=>render(FilterByRecentProductByReasonnablePrice(event.target.value), currentPagination));
+  }
+);
 
 document.addEventListener('DOMContentLoaded', async () => {
   fetchProducts2()

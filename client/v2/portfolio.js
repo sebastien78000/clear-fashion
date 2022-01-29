@@ -9,23 +9,28 @@
 'use strict';
 
 // current products on the page
-let currentProducts = [];
-let currentPagination = {};
-let currentBrand="";
+var currentProducts = [];
+var currentFavorites ="test";
+var currentPagination = {};
+var currentBrand="";
 var lastReleasedDateVar=new Date("1901-10-01");
 var meanProduct=0;
 var sdProduct=0;
+var currentNbNewProducts=0;
 
 // inititiate selectors
 const selectShow = document.querySelector('#show-select');
 const selectPage = document.querySelector('#page-select');
 const sectionProducts = document.querySelector('#products');
+const selectFavoritesR = document.querySelector('#favorite-choice');
 const selectBrands = document.querySelector('#brand-select');
 const spanNbProducts = document.querySelector('#nbProducts');
 const spanP50 = document.querySelector('#p50');
 const spanP90 = document.querySelector('#p90');
 const spanP95 = document.querySelector('#p95');
+const spanNbNewProducts = document.querySelector('#nbNewProducts');
 const spanLastReleaseDate = document.querySelector('#lastReleasedDate');
+const spanFavorite = document.querySelector('#favorite');
 
 
 /**
@@ -48,16 +53,17 @@ const setCurrentProducts = ({result, meta}) => {
 const lastReleasedDate = async (page = 1, size = 48,brands="")=>
 {
   try {
-    lastReleasedDateVar=new Date("1901-10-01");
     const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
     const body = await response.json();
-    currentBrand=brands;
     if (body.success !== true) {
       console.error(body);
-      return {lastReleasedDateVar};
+      return {currentProducts, currentPagination};
     }
+    lastReleasedDateVar=new Date("1901-10-01");
+    currentBrand=brands;
     if(brands=="") // when no brands are selected
     {
+      console.log("passe");
       for(let i=1;i<=body.data.meta.pageCount;i++) //number of existing data
       {
         const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
@@ -101,6 +107,72 @@ const lastReleasedDate = async (page = 1, size = 48,brands="")=>
     console.error(error);
     return {lastReleasedDateVar};
   }
+}
+
+const numberOfNewProducts = async (page = 1, size = 48,brands="")=>// products released less than one month ago
+{
+  try {
+    currentNbNewProducts=0;
+    const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
+    const body = await response.json();
+    if (body.success !== true) {
+      console.error(body);
+      return {currentProducts, currentPagination};
+    }
+    currentBrand=brands;
+    if(brands=="") // when no brands are selected
+    {
+      for(let i=1;i<=body.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        body.data.result.forEach(x => {
+
+          var actualDate = new Date(Date.now());
+          actualDate.setDate(actualDate.getDate()-30);
+          if(actualDate<new Date(x.released))
+          {
+            currentNbNewProducts=currentNbNewProducts+1;
+          }
+
+        });
+      }
+      //console.log("cnb"+currentNbNewProducts);
+      return {currentNbNewProducts}
+    }
+    else{ 
+      
+      const response = await fetch(`https://clear-fashion-api.vercel.app?page=${page}&size=${size}`);
+      const body = await response.json();
+      if (body.success !== true) {
+        console.error(body);
+        return {currentProducts, currentPagination};
+      }
+      for(let i=1;i<=body.data.meta.pageCount;i++) //number of existing data
+      {
+        const response = await fetch(`https://clear-fashion-api.vercel.app?page=${i}&size=${size}`);
+        const body = await response.json();    
+        body.data.result.forEach(x => {
+          if(x.brand==brands)
+          {
+            var actualDate = new Date(Date.now());
+            actualDate.setDate(actualDate.getDate()-30);
+            if(actualDate<new Date(x.released))
+            {
+              currentNbNewProducts=currentNbNewProducts+1;
+            }
+          }
+        });
+      }
+      return {currentNbNewProducts}
+      
+    }
+    
+  } catch (error) {
+    console.error(error);
+    return {currentNbNewProducts};
+  }
+
 }
 
 const percentile = async (page = 1, size = 12,brands="") => // get mean and standard deviation WORK ONLY WHEN NO BRANDS ARE SELECTED
@@ -190,6 +262,12 @@ const percentile = async (page = 1, size = 12,brands="") => // get mean and stan
   }
 }
 
+
+
+const instantiateFavorite = (fav) =>
+{
+  window.localStorage.setItem("fav",JSON.stringify(fav));
+}
 
 const fetchProducts2 = async (page = 1, size = 12,brands="") => {
   try {
@@ -290,7 +368,21 @@ const renderProducts = products => {
   fragment.appendChild(div);
   sectionProducts.innerHTML = '<h2>Products</h2>';
   sectionProducts.appendChild(fragment);
+
+  
 };
+
+const renderFavorites = products => {
+  const selectFavorites = document.getElementById('favorite-choice');
+  selectFavorites.options.length = 0;
+  for(let i=0;i<products.length;i++)
+  {
+    selectFavorites.options[selectFavorites.options.length] = new Option(`${products[i].brand} ${products[i].name} ${products[i].price}`,i)
+  }
+  const temp= window.localStorage.getItem("favorites");
+  spanFavorite.innerHTML=2;
+};
+
 
 /**
  * Render page selector
@@ -308,6 +400,7 @@ const renderPagination = pagination => {
   selectPage.selectedIndex = currentPage - 1;
 
 
+
 };
 
 /**
@@ -320,17 +413,24 @@ const renderIndicators = pagination => {
   spanNbProducts.innerHTML = currentPagination.count;//update nb products even when selecting a brand
   spanLastReleaseDate.innerHTML=lastReleasedDateVar.toDateString();
 
-  spanP50.innerHTML=meanProduct;
-  spanP90.innerHTML=meanProduct-1.29*sdProduct;
-  spanP95.innerHTML=meanProduct-1.69*sdProduct;
+  spanP50.innerHTML=Math.round(meanProduct);
+  spanP90.innerHTML=Math.round(meanProduct-1.29*sdProduct);
+  spanP95.innerHTML=Math.round(meanProduct-1.69*sdProduct);
+
+  spanNbNewProducts.innerHTML=currentNbNewProducts;
 
 };
+
+
 
 const render = (products, pagination) => {
   renderProducts(products);
   renderPagination(pagination);
   renderIndicators(pagination);
+  renderFavorites(products);
+  
 };
+
 
 /**
  * Declaration of all Listeners
@@ -357,19 +457,21 @@ selectBrands.addEventListener('change', event => {
     .then(setCurrentProducts)
     .then(percentile(1,48,event.target.value))
     .then(lastReleasedDate(1,48,event.target.value))
+    .then(numberOfNewProducts(1,48,event.target.value))
     .then(() => render(currentProducts, currentPagination));
 });
-
+/*
+selectFavoritesR.addEventListener('change', event => {
+  instantiateFavorite(event.target.value)
+  .then(() => render(currentProducts, currentPagination));
+});
+*/
 document.addEventListener('DOMContentLoaded', async () => {
-  /*
-  const products = await fetchProducts2(); 
-  setCurrentProducts(products);
-  percentile()
-  render(currentProducts, currentPagination);
-  */
   fetchProducts2()
+    .then(instantiateFavorite(currentFavorites))// ?
     .then(setCurrentProducts)
     .then(percentile)
     .then(lastReleasedDate())
+    .then(numberOfNewProducts())
     .then(() => render(currentProducts, currentPagination));
 });

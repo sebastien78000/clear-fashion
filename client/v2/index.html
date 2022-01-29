@@ -23,12 +23,12 @@
         <div id="brand">
           <label for="brand-select">By brands:</label>
           <select name="brand" id="brand-select">
-            <option value="">all the marks</option>>
-            <option value="loom">loom</option>
+            <option value="" selected>--All the marks--</option>>
+            <option value="loom">Loom</option>
             <option value="1083">1083</option>
-            <option value="dedicated">dedicated</option>
-            <option value="adresse">adresse</option>
-            <option value="coteleparis">coteleparis</option>
+            <option value="dedicated">Dedicated</option>
+            <option value="adresse">Adresse</option>
+            <option value="coteleparis">Coteleparis</option>
           </select>
         </div>
       </div>
@@ -45,12 +45,12 @@
     <section id="indicators">
       <h2>Indicators</h2>
       <div>
-        <span>Number of products</span>
+        <span>Number of products:</span>
         <span id="nbProducts">0</span>
       </div>
       <div>
-        <span>Number of new products</span>
-        <span>0</span>
+        <span>Number of new products:</span>
+        <span id="nbNewProducts">0</span>
       </div>
       <div>
         <span>p50 price value:</span>
@@ -65,11 +65,21 @@
         <span id="p95">0</span>
       </div>
       <div>
-        <span>Last released date</span>
+        <span>Last released date:</span>
         <span id="lastReleasedDate">2020-01-01</span>
       </div>
     </section>
     <section id="products"></section>
     <script type="text/javascript" charset="UTF-8" src="portfolio.js"></script>
+    <h2>Favorite</h2>
+    <div>
+      <span>Current favorite product:</span>
+      <span id="favorite">0</span>
+    </div>
+    <div id="page">
+      <label for="page-select">Choose your favorite:</label>
+      <select name="favorites" id="favorite-choice"> </select>
+    </div>
+    
   </body>
 </html>

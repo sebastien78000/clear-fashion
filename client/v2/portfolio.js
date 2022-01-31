@@ -1,7 +1,6 @@
 //Features:
-//done: 0, 1, 2,5,6 8,9, 10,11,12
-//on going:
-//not done:
+//done: 0,1,2,3,4,5,6 8,9, 10,11,12
+
 
 
 
@@ -294,7 +293,7 @@ const percentile = async (page = 1, size = 12,brands="") => // get mean and stan
         const body = await response.json();    
         nbPage=body.data.meta.pageCount;  
         body.data.result.forEach(x => {
-          sdProduct=sdProduct+(x.price+meanProduct,2)
+          sdProduct=sdProduct+(x.price+meanProduct)
         });
         sdProduct=Math.sqrt(sdProduct);
       }
@@ -329,7 +328,7 @@ const percentile = async (page = 1, size = 12,brands="") => // get mean and stan
         nbPage=body.data.meta.pageCount;  
         body.data.result.forEach(x => {
           if(x.brand==brands){
-            sdProduct=sdProduct+(x.price+meanProduct,2)
+            sdProduct=sdProduct+(x.price+meanProduct)
           }
           
         });
@@ -449,7 +448,6 @@ const renderProducts = products => {
 
   div.innerHTML = template;
   fragment.appendChild(div);
-  sectionProducts.innerHTML = '<h2>Products</h2>';
   sectionProducts.appendChild(fragment);
 
   

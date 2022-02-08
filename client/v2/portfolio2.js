@@ -60,6 +60,8 @@ const renderProducts = products => {
         <span>${product.brand}</span>
         <a href="${product.link}">${product.name}</a>
         <span>${product.price}</span>
+        <element>Click </element>
+
       </div>
     `;
     })

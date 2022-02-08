@@ -10,15 +10,17 @@ const {'v5': uuidv5} = require('uuid');
 const parse = data => {
   const $ = cheerio.load(data);
 
-  return $('.category-products')
+  return $("li[class='item']")
     .map((i, element) => {
-      const link = `https://www.montlimart.com/${$(element)
-        .find('.')
-        .attr('href')}`;
-
+      const link = $(element)
+        .find('.product-name a')
+        .attr('href');
+      
       return {
         link,
+        
         'brand': 'montlimart',
+        
         'price': parseInt(
           $(element)
             .find('span.price')
@@ -26,11 +28,16 @@ const parse = data => {
         ),
         'name': $(element)
           .find('h2.product-name a')
-          .text(),
+          .text()
+          .trim()
+          .replace(/\s/g, ' '),
         'photo': $(element)
-          .find('.productList-image a')
+          .find('.product-image img')
           .attr('src'),
-        '_id': uuidv5(link, uuidv5.URL)
+          
+        '_id': uuidv5(link, uuidv5.URL),
+        'date':Date.now()
+        
       };
     })
     .get();

@@ -1,9 +1,6 @@
 //Features:
 //done: 0,1,2,3,4,5,6 8,9, 10,11,12
 
-
-
-
 // Invoking strict mode https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode#invoking_strict_mode
 'use strict';
 
@@ -22,7 +19,7 @@ const selectShow = document.querySelector('#show-select');
 const selectSort = document.querySelector('#sort-select');
 const selectPage = document.querySelector('#page-select');
 const sectionProducts = document.querySelector('#products');
-const selectFavoritesR = document.querySelector('#favorite-choice');
+
 const selectBrands = document.querySelector('#brand-select');
 const selectFilter = document.querySelector('#filter-select');
 const spanNbProducts = document.querySelector('#nbProducts');
@@ -31,7 +28,7 @@ const spanP90 = document.querySelector('#p90');
 const spanP95 = document.querySelector('#p95');
 const spanNbNewProducts = document.querySelector('#nbNewProducts');
 const spanLastReleaseDate = document.querySelector('#lastReleasedDate');
-const spanFavorite = document.querySelector('#favorite');
+const spanFavorite = document.querySelector('#favoriteProduct');
 
 
 /**
@@ -320,7 +317,8 @@ const renderFavorites = products => {
     selectFavorites.options[selectFavorites.options.length] = new Option(`${products[i].brand} ${products[i].name} ${products[i].price}`,i)
   }
   const temp= window.localStorage.getItem("favorites");
-  spanFavorite.innerHTML=2;
+  if(temp!=null) spanFavorite.innerHTML=temp;
+ 
 };
 
 
@@ -403,8 +401,8 @@ selectBrands.addEventListener('change', event => {
     .then(() => render(currentProducts, currentPagination));
 });
 /*
-selectFavoritesR.addEventListener('change', event => {
-  instantiateFavorite(event.target.value)
+selectFavorites.addEventListener('change', event => {
+  instantiateFavorite(currentProduct[event.target.value])
   .then(() => render(currentProducts, currentPagination));
 });
 */

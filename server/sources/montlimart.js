@@ -15,7 +15,7 @@ const parse = data => {
         .find('h2.product-name a')
         .text()
         .trim()
-        .replace(/\s/g, ' ');;
+        .replace(/\s/g, ' ');
       const price = parseInt(
         $(element)
         .find('span.price')

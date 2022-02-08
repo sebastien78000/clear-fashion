@@ -8,6 +8,7 @@ async function sandbox (eshop = 'https://www.montlimart.com/toute-la-collection.
     const products = await montlimart.scrape(eshop);
 
     console.log(products);
+    console.log(products.length);
     console.log('done');
     process.exit(0);
   } catch (e) {

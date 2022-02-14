@@ -52,8 +52,7 @@ async function sandbox () {
     
 
     var finalProducts=products1.concat(products2,products3);
-    console.log(JSON.stringify(finalProducts));
-    const finalProductsString='{'+JSON.stringify(finalProducts)+'}'
+    const finalProductsString=JSON.stringify(finalProducts)
 
     await fs.writeFile('dataBrands.json', finalProductsString,function (err)
     {

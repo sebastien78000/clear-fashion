@@ -1,7 +1,7 @@
 /* eslint-disable no-console, no-process-exit */
-const dedicatedbrand = require('./sites/dedicatedbrand');
-const montlimart= require('./sites/montlimart');
-const adresse= require('./sites/adresse');
+const dedicatedbrand = require('./sources/dedicatedbrand');
+const montlimart= require('./sources/montlimart');
+const adresse= require('./sources/adresse');
 const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const cheerio = require('cheerio');

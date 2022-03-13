@@ -30,6 +30,8 @@ const spanNbNewProducts = document.querySelector('#nbNewProducts');
 const spanLastReleaseDate = document.querySelector('#lastReleasedDate');
 const spanFavorite = document.querySelector('#favoriteProduct');
 
+const listOfItemsForAddingInFavorite = document.querySelector("#favorites-setup");
+let btn = document.querySelector("input");
 
 /**
  * Set global value
@@ -420,6 +422,26 @@ selectFilter.addEventListener('change', event => {
     .then(()=>render(FilterByRecentProductByReasonnablePrice(event.target.value), currentPagination));
   }
 );
+
+btn.addEventListener("click", async() => {
+  //console.log("hello");
+  //console.log(listOfItemsForAddingInFavorite.value);
+  favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+  //console.log(favorites);
+  let productToAddFav = favorites.find(product => product.uuid == listOfItemsForAddingInFavorite.value);
+
+  if (productToAddFav === undefined) {
+    const products = await fetchProducts(currentPagination.currentPage, currentPagination.pageSize);
+    productToAddFav = products.result.find(product => product.uuid == listOfItemsForAddingInFavorite.value);
+
+    favorites.push(productToAddFav);
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    window.alert(Le produit ${productToAddFav.name} de la marque ${productToAddFav.brand} vient d'être ajouté à vos favoris.);
+  }
+  else{
+    window.alert(Le produit ${productToAddFav.name} de la marque ${productToAddFav.brand} a déjà été ajouté à vos favoris.)
+  }
+})
 
 document.addEventListener('DOMContentLoaded', async () => {
   fetchProducts2()

@@ -8,13 +8,15 @@ let db=null;
 
 const Connection = async()=>
 {
+
     const client = await MongoClient.connect(MONGODB_URI, {'useNewUrlParser': true});
     db =  client.db(MONGODB_DB_NAME)
     //await productsOfABrand('montlimart');
     //await productsLessThanAprice(10);
     //await productsSortedByDate();
     //await productsSortedByPrice();
-    await productsScrapedLessThanTwoWeeksAgo()
+    //await productsScrapedLessThanTwoWeeksAgo();
+	await productsById("f8a0e828-0879-5984-abae-2b1251b6f318");
     process.exit()
     
 }
@@ -53,6 +55,13 @@ const productsSortedByDate = async()=>
 {
     collection = db.collection('products')
     const products = await collection.find({}).sort({"date":1}).toArray();
+    console.log(products);
+}
+
+const productsById = async(id)=>
+{
+    collection = db.collection('products')
+    const products = await collection.find({"_id":id}).toArray();
     console.log(products);
 }
 

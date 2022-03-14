@@ -13,13 +13,14 @@ var lastReleasedDateVar=new Date("1901-10-01");
 var meanProduct=0;
 var sdProduct=0;
 var currentNbNewProducts=0;
+var favorites = [];
 
 // inititiate selectors
 const selectShow = document.querySelector('#show-select');
 const selectSort = document.querySelector('#sort-select');
 const selectPage = document.querySelector('#page-select');
 const sectionProducts = document.querySelector('#products');
-
+const sectionFavorites = document.querySelector('#favorites');
 const selectBrands = document.querySelector('#brand-select');
 const selectFilter = document.querySelector('#filter-select');
 const spanNbProducts = document.querySelector('#nbProducts');
@@ -30,8 +31,7 @@ const spanNbNewProducts = document.querySelector('#nbNewProducts');
 const spanLastReleaseDate = document.querySelector('#lastReleasedDate');
 const spanFavorite = document.querySelector('#favoriteProduct');
 
-const listOfItemsForAddingInFavorite = document.querySelector("#favorites-setup");
-let btn = document.querySelector("input");
+
 
 /**
  * Set global value
@@ -310,18 +310,50 @@ const renderProducts = products => {
   
 };
 
-const renderFavorites = products => {
-  console.log(products)
-  const selectFavorites = document.getElementById('favorite-choice');
-  selectFavorites.options.length = 0;
-  for(let i=0;i<products.length;i++)
-  {
-    selectFavorites.options[selectFavorites.options.length] = new Option(`${products[i].brand} ${products[i].name} ${products[i].price}`,i)
-  }
-  const temp= window.localStorage.getItem("favorites");
-  if(temp!=null) spanFavorite.innerHTML=temp;
- 
+
+const renderActualFavorites =products => {
+
+  console.log("passe2")
+  favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+  console.log(favorites[0]);
+  const fragment2 = document.createDocumentFragment();
+  const div2 = document.createElement('div');
+  const template2 = favorites
+    .map(favorite => {
+      return `
+      <div class="favorite" id=${favorite.uuid}>
+        <span>${favorite.brand}</span>
+        <a href="${favorite.link}" target="_blank">${favorite.name}</a>
+        <span>${favorite.price}</span>
+      </div>
+    `;
+    })
+    .join('');
+  
+  div2.innerHTML = template2;
+  fragment2.appendChild(div2);
+  let sectionActualFavorites = document.querySelector('#favorites-script');
+  sectionActualFavorites.innerHTML = '<h3>Actual Favorites</h3>';
+  sectionActualFavorites.appendChild(fragment2);
+
+  
 };
+
+
+
+const renderFavorites = products => {
+  var listOfFavorite = document.getElementById('favorites-setup');
+  listOfFavorite.options.length=0;
+  for (var i = 0; i<products.length; i++)
+  {
+    var opt = document.createElement('option');
+    opt.value = products[i].uuid;
+    opt.innerHTML = products[i].name;
+    listOfFavorite.add(opt);
+  }
+};
+
+
 
 
 /**
@@ -367,7 +399,9 @@ const render = (products, pagination) => {
   renderProducts(products);
   renderPagination(pagination);
   renderIndicators(pagination);
+  renderActualFavorites(products);
   renderFavorites(products);
+  
   
 };
 
@@ -399,7 +433,6 @@ selectBrands.addEventListener('change', event => {
     .then(percentile(1,48,event.target.value))
     .then(lastReleasedDate(1,48,event.target.value))
     .then(numberOfNewProducts(1,48,event.target.value))
-    
     .then(() => render(currentProducts, currentPagination));
 });
 /*
@@ -423,32 +456,35 @@ selectFilter.addEventListener('change', event => {
   }
 );
 
-btn.addEventListener("click", async() => {
-  //console.log("hello");
-  //console.log(listOfItemsForAddingInFavorite.value);
-  favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-  //console.log(favorites);
-  let productToAddFav = favorites.find(product => product.uuid == listOfItemsForAddingInFavorite.value);
 
-  if (productToAddFav === undefined) {
-    const products = await fetchProducts(currentPagination.currentPage, currentPagination.pageSize);
-    productToAddFav = products.result.find(product => product.uuid == listOfItemsForAddingInFavorite.value);
 
-    favorites.push(productToAddFav);
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    window.alert(Le produit ${productToAddFav.name} de la marque ${productToAddFav.brand} vient d'être ajouté à vos favoris.);
-  }
-  else{
-    window.alert(Le produit ${productToAddFav.name} de la marque ${productToAddFav.brand} a déjà été ajouté à vos favoris.)
-  }
-})
 
 document.addEventListener('DOMContentLoaded', async () => {
   fetchProducts2()
-    //.then(instantiateFavorite(currentFavorites))// ?
     .then(setCurrentProducts)
     .then(percentile)
     .then(lastReleasedDate())
     .then(numberOfNewProducts())
     .then(() => render(currentProducts, currentPagination));
 });
+
+
+let button =async function() {
+  var listOfItemsForAddingInFavorite = document.getElementById('favorites-setup');
+  console.log(listOfItemsForAddingInFavorite.value);
+  favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+  //console.log(favorites);
+  let productToAddFav = favorites.find(product => product.uuid == listOfItemsForAddingInFavorite.value);
+
+  if (productToAddFav === undefined) {
+    const products = await fetchProducts2(currentPagination.currentPage, currentPagination.pageSize,currentBrand);
+    productToAddFav = products.result.find(product => product.uuid == listOfItemsForAddingInFavorite.value);
+
+    favorites.push(productToAddFav);
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    window.alert(`Le produit ${productToAddFav.name} de la marque ${productToAddFav.brand} vient d'etre ajoute a vos favoris.`);
+  }
+  else{
+    window.alert(`Le produit ${productToAddFav.name} de la marque ${productToAddFav.brand} a deja ete ajoute a vos favoris.`)
+  }
+}

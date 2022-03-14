@@ -404,8 +404,8 @@ const renderIndicators = pagination => {
 
 const render = (products, pagination) => {
   renderProducts(products);
-  //renderPagination(pagination);
-  //renderIndicators(pagination);
+  renderPagination(pagination);
+  renderIndicators(pagination);
   renderActualFavorites(products);
   renderFavorites(products);
   
